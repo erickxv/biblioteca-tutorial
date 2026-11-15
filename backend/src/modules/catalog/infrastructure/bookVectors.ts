@@ -167,3 +167,18 @@ export async function syncAuthorBookIndex(authorId: number, integration: Catalog
     console.warn("Índice semântico indisponível:", (error as Error).message);
   }
 }
+
+export type KnnHit = { id: number; distance: number };
+
+/** Os `limit` livros mais próximos do vetor, do mais perto para o mais longe. */
+export async function knnSearch(vector: Float32Array, limit: number): Promise<KnnHit[]> {
+  const query = toPgvector(vector);
+  // a expressão no ORDER BY, com <=> e vector_cosine_ops, é o que o índice HNSW reconhece
+  const rows = await sql`
+    SELECT livro_id AS id, embedding <=> ${query}::vector AS distance
+    FROM livros_vetores
+    ORDER BY embedding <=> ${query}::vector
+    LIMIT ${limit}
+  ` as { id: number; distance: number | string }[];
+  return rows.map((row) => ({ id: row.id, distance: Number(row.distance) }));
+}

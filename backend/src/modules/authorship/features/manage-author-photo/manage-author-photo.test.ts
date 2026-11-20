@@ -24,7 +24,7 @@ test("UC26: a chave da foto pertence ao módulo Autoria", () => {
   expect(photoKey(7)).toBe("autoria/autores/7/foto");
 });
 
-test.todo("UC26: envia a foto, devolve fotoUrl e serve os mesmos bytes", async () => {
+test("UC26: envia a foto, devolve fotoUrl e serve os mesmos bytes", async () => {
   const author = await testAuthor();
   const response = await sendPhoto(author.id, PNG);
   expect(response.status).toBe(200);
@@ -39,7 +39,7 @@ test.todo("UC26: envia a foto, devolve fotoUrl e serve os mesmos bytes", async (
   expect(await getObject(photoKey(author.id))).not.toBeNull();
 });
 
-test.todo("UC26: trocar a foto substitui o objeto e muda a fotoUrl", async () => {
+test("UC26: trocar a foto substitui o objeto e muda a fotoUrl", async () => {
   const author = await testAuthor();
   const first = (await (await sendPhoto(author.id, PNG)).json()).fotoUrl;
   await Bun.sleep(5);
@@ -50,7 +50,7 @@ test.todo("UC26: trocar a foto substitui o objeto e muda a fotoUrl", async () =>
   expect(new Uint8Array(await photo.arrayBuffer())).toEqual(JPEG);
 });
 
-test.todo("UC26: recusa o que não é imagem (400), o que passa de 2 MB (413) e autor inexistente (404)", async () => {
+test("UC26: recusa o que não é imagem (400), o que passa de 2 MB (413) e autor inexistente (404)", async () => {
   const author = await testAuthor();
   expect((await sendPhoto(author.id, FAKE_JPEG, "foto.jpg", "image/jpeg")).status).toBe(400);
   const big = new Uint8Array(MAX_IMAGE_BYTES + 1);

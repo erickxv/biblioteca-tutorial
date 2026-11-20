@@ -64,7 +64,7 @@ test("UC26: recusa o que não é imagem (400), o que passa de 2 MB (413) e autor
   expect(await getObject(photoKey(author.id))).toBeNull();
 });
 
-test.todo("UC26: remover a foto zera fotoUrl e apaga o objeto do bucket", async () => {
+test("UC26: remover a foto zera fotoUrl e apaga o objeto do bucket", async () => {
   const author = await testAuthor();
   await sendPhoto(author.id, PNG);
   expect((await api("DELETE", `/autores/${author.id}/foto`)).status).toBe(204);
@@ -74,7 +74,7 @@ test.todo("UC26: remover a foto zera fotoUrl e apaga o objeto do bucket", async 
   expect((await api("DELETE", "/autores/2147483647/foto")).status).toBe(404);
 });
 
-test.todo("UC26: sem RustFS, 503 e o autor continua como estava", async () => {
+test("UC26: sem RustFS, 503 e o autor continua como estava", async () => {
   const author = await testAuthor();
   const image = { bytes: PNG, type: "image/png" as const };
   await expect(uploadAuthorPhoto(author.id, image, authorshipIntegration, { client: null })).rejects.toBeInstanceOf(ServiceUnavailable);
@@ -85,7 +85,7 @@ test.todo("UC26: sem RustFS, 503 e o autor continua como estava", async () => {
   expect((await authorById(author.id)).fotoUrl).not.toBeNull();
 });
 
-test.todo("UC26: enviar e remover a foto invalidam o cache da busca de autores", async () => {
+test("UC26: enviar e remover a foto invalidam o cache da busca de autores", async () => {
   const author = await testAuthor();
   const search = async () => {
     const response = await api("GET", `/autores?q=${encodeURIComponent(author.nome)}`);

@@ -20,7 +20,7 @@ const sendPhoto = (id: number, bytes: Uint8Array, name = "foto.png", type = "ima
 
 const authorById = async (id: number) => (await api("GET", `/autores/${id}`)).json();
 
-test.todo("UC26: a chave da foto pertence ao módulo Autoria", () => {
+test("UC26: a chave da foto pertence ao módulo Autoria", () => {
   expect(photoKey(7)).toBe("autoria/autores/7/foto");
 });
 

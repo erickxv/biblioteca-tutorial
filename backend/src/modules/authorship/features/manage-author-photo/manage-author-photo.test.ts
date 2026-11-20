@@ -106,7 +106,7 @@ test("UC26: enviar e remover a foto invalidam o cache da busca de autores", asyn
   expect(afterRemove.authors[0]!.fotoUrl).toBeNull();
 });
 
-test.todo("UC08: excluir o autor apaga a foto do bucket", async () => {
+test("UC08: excluir o autor apaga a foto do bucket", async () => {
   const author = await testAuthor();
   await sendPhoto(author.id, PNG);
   expect(await getObject(photoKey(author.id))).not.toBeNull();

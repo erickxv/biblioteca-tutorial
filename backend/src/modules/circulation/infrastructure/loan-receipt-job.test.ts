@@ -66,7 +66,7 @@ test.todo("UC19 API: sem fila, o comprovante sai na hora, para o e-mail do leito
   expect(await receiptSentAt(loan.id)).not.toBeNull();
 });
 
-test.todo("UC19: com fila, a mensagem leva só o id do empréstimo, e o worker manda o comprovante", async () => {
+test("UC19: com fila, a mensagem leva só o id do empréstimo, e o worker manda o comprovante", async () => {
   const { reader, loan } = await newLoan();
   const sender = createMemorySender();
   const job = loanReceiptJob(sender);
@@ -92,7 +92,7 @@ test("a mesma mensagem entregue duas vezes manda um e-mail só", async () => {
   expect(await sendLoanReceipt(loan.id, sender)).toBe("já enviado");
 });
 
-test.todo("o leitor trocou de e-mail antes do envio: o comprovante vai para o endereço atual", async () => {
+test("o leitor trocou de e-mail antes do envio: o comprovante vai para o endereço atual", async () => {
   const { reader, loan } = await newLoan();
   const sender = createMemorySender();
   const job = loanReceiptJob(sender);
@@ -116,7 +116,7 @@ test("se o provedor falha, a tarefa lança e o comprovante não fica marcado; a 
   expect(await receiptSentAt(loan.id)).not.toBeNull();
 });
 
-test.todo("sem fila, o comprovante sai na hora; se o provedor falha, pedir o comprovante não lança", async () => {
+test("sem fila, o comprovante sai na hora; se o provedor falha, pedir o comprovante não lança", async () => {
   const { reader, loan } = await newLoan();
   await scheduleLoanReceipt(loan.id, { client: null, sender: failing });
   expect(await receiptSentAt(loan.id)).toBeNull();

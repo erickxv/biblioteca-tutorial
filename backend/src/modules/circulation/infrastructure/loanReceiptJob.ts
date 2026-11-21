@@ -1,8 +1,7 @@
 import type { RedisClient } from "bun";
 import { emailSender } from "../../../infrastructure/email";
-import { queue, type Job } from "../../../infrastructure/queue";
+import { enqueue, queue, type Job } from "../../../infrastructure/queue";
 import type { EmailSender } from "../../../shared/EmailSender";
-import { NotImplemented } from "../../../shared/errors";
 import { redisKey } from "../../../infrastructure/redis";
 import { sql } from "../../../infrastructure/postgres";
 import { circulationDependencies } from "./dependencies";
@@ -70,21 +69,22 @@ export async function sendLoanReceipt(loanId: number, sender: EmailSender | null
 
 /**
  * UC19: pede o comprovante e volta na hora. Quem chama precisa estar depois do
- * COMMIT do empréstimo.
- *
- * TODO (atividade): siga scheduleBookIndex, em
- * modules/catalog/infrastructure/bookIndexJob.ts:
- *   1. publique { loanId } no stream da tarefa com enqueue, passando `client`;
- *   2. sem fila, ou com ela fora do ar (enqueue devolve null), envie aqui mesmo
- *      com sendLoanReceipt, passando `sender`. Se esse envio falhar, registre um
- *      aviso (console.warn) e siga: o empréstimo já está gravado, e o comprovante
- *      não pode transformá-lo num erro.
+ * COMMIT do empréstimo. Com fila, só o id viaja na mensagem e o worker faz o
+ * resto. Sem fila, ou com ela fora do ar, o envio acontece aqui mesmo: mais
+ * lento, mas o leitor não fica sem comprovante.
  */
 export async function scheduleLoanReceipt(
   loanId: number,
   { client = queue, sender = emailSender }: { client?: RedisClient | null; sender?: EmailSender | null } = {},
 ): Promise<void> {
-  throw new NotImplemented(`Comprovante (UC19) ainda não implementado: pedir o do empréstimo ${loanId}`);
+  const task: LoanReceiptTask = { loanId };
+  if (await enqueue(LOAN_RECEIPT_STREAM, task, client)) return;
+  try {
+    await sendLoanReceipt(loanId, sender);
+  } catch (error) {
+    // o empréstimo já está gravado: a falha do e-mail vira aviso, não erro
+    console.warn(`Comprovante do empréstimo ${loanId} não enviado: ${(error as Error).message}`);
+  }
 }
 
 /**

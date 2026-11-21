@@ -47,7 +47,7 @@ async function receiptSentAt(loanId: number): Promise<Date | null> {
 
 const sentTo = (sender: MemorySender, address: string) => sender.sent.filter((email) => email.to === address);
 
-test.todo("o stream dos comprovantes pertence à Circulação", () => {
+test("o stream dos comprovantes pertence à Circulação", () => {
   expect(loanReceiptJob(null).stream).toBe(`${process.env.REDIS_PREFIX ?? "biblioteca"}:circulacao:fila:comprovantes`);
 });
 

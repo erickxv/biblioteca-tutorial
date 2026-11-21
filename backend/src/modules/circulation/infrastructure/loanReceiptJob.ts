@@ -3,12 +3,16 @@ import { emailSender } from "../../../infrastructure/email";
 import { queue, type Job } from "../../../infrastructure/queue";
 import type { EmailSender } from "../../../shared/EmailSender";
 import { NotImplemented } from "../../../shared/errors";
+import { redisKey } from "../../../infrastructure/redis";
 
 /** A mensagem leva só o id do empréstimo: o resto, o worker lê na hora de enviar. */
 export type LoanReceiptTask = { loanId: number };
 
 /** O que aconteceu com um pedido de comprovante. O worker escreve isso no log. */
 export type ReceiptOutcome = "enviado" | "já enviado" | "empréstimo não encontrado" | "sem remetente";
+
+/** O stream dos comprovantes. O primeiro trecho diz o dono, como toda chave do Redis. */
+export const LOAN_RECEIPT_STREAM = redisKey("circulacao", "fila", "comprovantes");
 
 /**
  * Manda o comprovante do empréstimo ao leitor, uma vez só. Lança quando o envio
@@ -50,16 +54,18 @@ export async function scheduleLoanReceipt(
 }
 
 /**
- * A tarefa do lado do worker, como bookIndexJob.
- *
- * TODO (atividade):
- *   1. stream: monte a chave com redisKey(...), de infrastructure/redis. O
- *      primeiro trecho diz o módulo dono; o teste 1 diz a chave completa, e
- *      `bun run check-boundaries` confere o dono;
- *   2. handle: a mensagem é dado externo, como o corpo de uma requisição. Sem um
- *      loanId inteiro, lance um Error cuja mensagem diga "sem o id do empréstimo";
- *   3. chame sendLoanReceipt com o `sender` recebido e escreva o resultado no log.
+ * A tarefa do lado do worker. Ao contrário de scheduleLoanReceipt, aqui a falha
+ * sobe: sem o XACK, a fila entrega a mensagem de novo mais tarde.
  */
 export function loanReceiptJob(sender: EmailSender | null = emailSender): Job<LoanReceiptTask> {
-  throw new NotImplemented("Comprovante (UC19) ainda não implementado: a tarefa do worker");
+  return {
+    stream: LOAN_RECEIPT_STREAM,
+    async handle(task) {
+      // a mensagem é dado externo, como o corpo de uma requisição: valida antes de usar
+      if (!Number.isInteger(task?.loanId)) throw new Error("Tarefa de comprovante sem o id do empréstimo");
+      const outcome = await sendLoanReceipt(task.loanId, sender);
+      // só o id e o resultado: o e-mail do leitor é dado pessoal e não vai para o log
+      console.log(`Comprovante do empréstimo ${task.loanId}: ${outcome}`);
+    },
+  };
 }

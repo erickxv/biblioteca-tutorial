@@ -51,7 +51,7 @@ test("o stream dos comprovantes pertence à Circulação", () => {
   expect(loanReceiptJob(null).stream).toBe(`${process.env.REDIS_PREFIX ?? "biblioteca"}:circulacao:fila:comprovantes`);
 });
 
-test.todo("UC19 API: sem fila, o comprovante sai na hora, para o e-mail do leitor", async () => {
+test("UC19 API: sem fila, o comprovante sai na hora, para o e-mail do leitor", async () => {
   const reader = await testReader();
   const copy = await testCopy();
   const response = await api("POST", "/emprestimos", { leitorId: reader.id, exemplarId: copy.id });

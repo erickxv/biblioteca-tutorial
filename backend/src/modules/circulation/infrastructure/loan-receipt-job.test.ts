@@ -82,7 +82,7 @@ test.todo("UC19: com fila, a mensagem leva só o id do empréstimo, e o worker m
   expect(await receiptSentAt(loan.id)).not.toBeNull();
 });
 
-test.todo("a mesma mensagem entregue duas vezes manda um e-mail só", async () => {
+test("a mesma mensagem entregue duas vezes manda um e-mail só", async () => {
   const { reader, loan } = await newLoan();
   const sender = createMemorySender();
   const job = loanReceiptJob(sender);
@@ -106,7 +106,7 @@ test.todo("o leitor trocou de e-mail antes do envio: o comprovante vai para o en
   expect(sentTo(sender, newEmail)).toHaveLength(1);
 });
 
-test.todo("se o provedor falha, a tarefa lança e o comprovante não fica marcado; a nova tentativa envia", async () => {
+test("se o provedor falha, a tarefa lança e o comprovante não fica marcado; a nova tentativa envia", async () => {
   const { reader, loan } = await newLoan();
   await expect(loanReceiptJob(failing).handle({ loanId: loan.id })).rejects.toThrow("provedor de e-mail fora do ar");
   expect(await receiptSentAt(loan.id)).toBeNull();
@@ -125,7 +125,7 @@ test.todo("sem fila, o comprovante sai na hora; se o provedor falha, pedir o com
   expect(sentTo(sender, reader.email)).toHaveLength(1);
 });
 
-test.todo("empréstimo inexistente não manda nada nem lança; mensagem sem o id falha", async () => {
+test("empréstimo inexistente não manda nada nem lança; mensagem sem o id falha", async () => {
   const sender = createMemorySender();
   expect(await sendLoanReceipt(2147483647, sender)).toBe("empréstimo não encontrado");
   await loanReceiptJob(sender).handle({ loanId: 2147483647 });
@@ -134,7 +134,7 @@ test.todo("empréstimo inexistente não manda nada nem lança; mensagem sem o id
   expect(sender.sent).toHaveLength(0);
 });
 
-test.todo("sem remetente configurado, nada é enviado nem marcado", async () => {
+test("sem remetente configurado, nada é enviado nem marcado", async () => {
   const { loan } = await newLoan();
   expect(await sendLoanReceipt(loan.id, null)).toBe("sem remetente");
   await loanReceiptJob(null).handle({ loanId: loan.id });
